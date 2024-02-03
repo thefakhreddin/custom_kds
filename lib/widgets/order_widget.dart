@@ -28,22 +28,23 @@ class OrderWidget extends StatelessWidget {
         children: [
           Text(
             'Order ID: ${order.id}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Courier', // Monospaced font for the ID, optional
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 5),
+          Text(
+            'Ordered At: ${order.createdAt}',
+            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+          ),
+          SizedBox(height: 5),
+          Text(
+            'Status: ${order.state}',
+            style: TextStyle(fontSize: 14, color: Colors.blueAccent),
           ),
           SizedBox(height: 10),
-          Text(
-            order.description,
-            style: TextStyle(
-              fontSize: 14,
-              fontFamily:
-                  'Courier', // Monospaced font for the description, optional
-            ),
-          ),
-          // Add more details here as needed
+          ...order.items.map((item) => Text(
+                '${item.quantity}x ${item.name}',
+                style: TextStyle(fontSize: 14),
+              )),
         ],
       ),
     );
