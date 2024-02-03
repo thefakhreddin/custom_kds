@@ -59,9 +59,20 @@ class _HomeScreenState extends State<HomeScreen>
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: const Text('Orders'),
+          toolbarHeight:
+              40.0, // Adjust the height as needed to make the AppBar thinner
+          backgroundColor:
+              Colors.black, // Set the AppBar background color to black
+          titleTextStyle: TextStyle(
+              color: Colors.white), // Ensures the title, if any, is in white
           bottom: TabBar(
             controller: _tabController,
+            labelColor:
+                Colors.white, // Set the selected tab text color to white
+            unselectedLabelColor: Colors.white.withOpacity(
+                0.7), // Set the unselected tab text color to a slightly transparent white
+            indicatorColor:
+                Colors.white, // Optional: Changes the indicator color to white
             tabs: [
               Tab(text: 'New Orders'), // First Tab
               Tab(text: 'All Orders'), // Second Tab
