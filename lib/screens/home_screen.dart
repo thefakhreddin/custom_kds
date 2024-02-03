@@ -9,67 +9,98 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  List<Order> _orders = []; // Manage orders directly
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  List<Order> _allOrders = [];
+  List<Order> _newOrders = [];
   late Timer _timer;
+  late TabController _tabController;
+  DateTime _appLaunchTime = DateTime.now(); // Store the app launch time
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _fetchLatestOrders();
     _timer = Timer.periodic(Duration(seconds: 5), (timer) {
-      // Reduced for more frequent updates
       _fetchLatestOrders();
     });
   }
 
   void _fetchLatestOrders() async {
     try {
-      var newOrders = await SquareService().fetchOrdersFromToday();
-      updateOrders(newOrders);
+      var fetchedOrders = await SquareService().fetchOrdersFromToday();
+      updateOrders(fetchedOrders);
     } catch (e) {
-      // Handle any errors here
       print('Failed to fetch orders: $e');
     }
   }
 
-  void updateOrders(List<Order> newOrders) {
+  void updateOrders(List<Order> fetchedOrders) {
     setState(() {
-      // This is a simple way to update orders without complex logic for adding/removing/updating individual items.
-      // For more efficient updates, consider comparing newOrders with _orders and applying only necessary changes.
-      _orders = newOrders;
+      _allOrders = fetchedOrders;
+      // Filter new orders based on the app launch time
+      _newOrders = fetchedOrders.where((order) {
+        return DateTime.parse(order.createdAt).isAfter(_appLaunchTime);
+      }).toList();
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2, // Number of tabs
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          title: const Text('Orders'),
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: [
+              Tab(text: 'All Orders'), // Swapped
+              Tab(text: 'New Orders'), // Swapped
+            ],
+          ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            buildOrdersTab(_allOrders), // Swapped
+            buildOrdersTab(_newOrders), // Swapped
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildOrdersTab(List<Order> orders) {
+    return orders.isEmpty
+        ? Center(
+            child:
+                Text('No orders found', style: TextStyle(color: Colors.white)))
+        : GridView.builder(
+            padding: EdgeInsets.all(8),
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 200,
+              childAspectRatio: 3 / 4,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemCount: orders.length,
+            itemBuilder: (context, index) {
+              final order = orders[index];
+              final double cardWidth =
+                  MediaQuery.of(context).size.width / 2 - 16;
+              return OrderWidget(
+                  key: ValueKey(order.id), order: order, width: cardWidth);
+            },
+          );
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    _tabController.dispose();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: _orders.isEmpty
-          ? Center(child: Text('No orders found'))
-          : GridView.builder(
-              padding: EdgeInsets.all(8),
-              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 200,
-                childAspectRatio: 3 / 4,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: _orders.length,
-              itemBuilder: (context, index) {
-                final order = _orders[index];
-                final double cardWidth =
-                    MediaQuery.of(context).size.width / 2 - 16;
-                return OrderWidget(
-                    key: ValueKey(order.id), order: order, width: cardWidth);
-              },
-            ),
-    );
   }
 }
