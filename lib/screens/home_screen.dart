@@ -11,6 +11,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
+  Set<String> _fulfilledOrderIds = Set<String>();
   List<Order> _allOrders = [];
   List<Order> _newOrders = [];
   late Timer _timer;
@@ -30,7 +31,11 @@ class _HomeScreenState extends State<HomeScreen>
   void _fetchLatestOrders() async {
     try {
       var fetchedOrders = await SquareService().fetchOrdersFromToday();
-      updateOrders(fetchedOrders);
+      // Exclude orders that have been marked as fulfilled
+      var newOrders = fetchedOrders
+          .where((order) => !_fulfilledOrderIds.contains(order.id))
+          .toList();
+      updateOrders(newOrders);
     } catch (e) {
       print('Failed to fetch orders: $e');
     }
@@ -38,9 +43,11 @@ class _HomeScreenState extends State<HomeScreen>
 
   void updateOrders(List<Order> fetchedOrders) {
     setState(() {
+      // When updating orders, make sure not to add back in fulfilled orders
       _allOrders = fetchedOrders;
       _newOrders = fetchedOrders.where((order) {
-        return DateTime.parse(order.createdAt).isAfter(_appLaunchTime);
+        return DateTime.parse(order.createdAt).isAfter(_appLaunchTime) &&
+            !_fulfilledOrderIds.contains(order.id);
       }).toList();
     });
   }
@@ -50,36 +57,38 @@ class _HomeScreenState extends State<HomeScreen>
     return DefaultTabController(
       length: 2, // Number of tabs
       child: Scaffold(
-        backgroundColor: Colors.black, // Background color for the scaffold
+        backgroundColor: Colors.black,
         appBar: AppBar(
-          title: Text('Orders',
-              style: TextStyle(
-                  color: Colors.white)), // Text color for AppBar title
-          backgroundColor: Colors.black, // AppBar background color
+          title: const Text('Orders'),
           bottom: TabBar(
             controller: _tabController,
-            indicatorColor: Colors.white, // Indicator color for tabs
-            labelColor: Colors.white, // Label color for selected tab
-            unselectedLabelColor:
-                Colors.grey, // Label color for unselected tabs
             tabs: [
-              Tab(text: 'New Orders'), // This tab is now the first one
-              Tab(text: 'All Orders'), // This tab is now the second one
+              Tab(text: 'New Orders'), // First Tab
+              Tab(text: 'All Orders'), // Second Tab
             ],
           ),
         ),
         body: TabBarView(
           controller: _tabController,
           children: [
-            buildOrdersTab(_newOrders), // This tab is now the first one
-            buildOrdersTab(_allOrders), // This tab is now the second one
+            buildOrdersTab(_newOrders, true), // Corresponds to 'New Orders' tab
+            buildOrdersTab(
+                _allOrders, false), // Corresponds to 'All Orders' tab
           ],
         ),
       ),
     );
   }
 
-  Widget buildOrdersTab(List<Order> orders) {
+  void _markOrderAsFulfilled(String orderId) {
+    setState(() {
+      _fulfilledOrderIds.add(orderId); // Keep track of fulfilled orders
+      _newOrders.removeWhere((order) => order.id == orderId);
+      // Update the status on the backend if necessary
+    });
+  }
+
+  Widget buildOrdersTab(List<Order> orders, bool isNewOrdersTab) {
     return orders.isEmpty
         ? Center(
             child:
@@ -97,8 +106,13 @@ class _HomeScreenState extends State<HomeScreen>
               final order = orders[index];
               final double cardWidth =
                   MediaQuery.of(context).size.width / 2 - 16;
-              return OrderWidget(
-                  key: ValueKey(order.id), order: order, width: cardWidth);
+              return GestureDetector(
+                onTap: isNewOrdersTab
+                    ? () => _markOrderAsFulfilled(order.id)
+                    : null,
+                child: OrderWidget(
+                    key: ValueKey(order.id), order: order, width: cardWidth),
+              );
             },
           );
   }
