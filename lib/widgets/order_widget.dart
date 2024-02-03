@@ -24,7 +24,7 @@ class OrderWidget extends StatelessWidget {
       width: width,
       margin: EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.black, // Background color of the whole card
+        color: Colors.white, // Background color of the whole card
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -71,7 +71,7 @@ class OrderWidget extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white, // Text color for better readability
+                    color: Colors.black, // Text color for better readability
                   ),
                 ),
               ),

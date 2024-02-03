@@ -38,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // ... (other scaffold properties if any)
+      backgroundColor: Colors.black,
       body: FutureBuilder<List<Order>>(
         future: ordersFuture, // This is the Future your UI depends on
         builder: (context, snapshot) {
