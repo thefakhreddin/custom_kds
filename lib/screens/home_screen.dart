@@ -39,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen>
   void updateOrders(List<Order> fetchedOrders) {
     setState(() {
       _allOrders = fetchedOrders;
-      // Filter new orders based on the app launch time
       _newOrders = fetchedOrders.where((order) {
         return DateTime.parse(order.createdAt).isAfter(_appLaunchTime);
       }).toList();
@@ -51,22 +50,29 @@ class _HomeScreenState extends State<HomeScreen>
     return DefaultTabController(
       length: 2, // Number of tabs
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.black, // Background color for the scaffold
         appBar: AppBar(
-          title: const Text('Orders'),
+          title: Text('Orders',
+              style: TextStyle(
+                  color: Colors.white)), // Text color for AppBar title
+          backgroundColor: Colors.black, // AppBar background color
           bottom: TabBar(
             controller: _tabController,
+            indicatorColor: Colors.white, // Indicator color for tabs
+            labelColor: Colors.white, // Label color for selected tab
+            unselectedLabelColor:
+                Colors.grey, // Label color for unselected tabs
             tabs: [
-              Tab(text: 'All Orders'), // Swapped
-              Tab(text: 'New Orders'), // Swapped
+              Tab(text: 'New Orders'), // This tab is now the first one
+              Tab(text: 'All Orders'), // This tab is now the second one
             ],
           ),
         ),
         body: TabBarView(
           controller: _tabController,
           children: [
-            buildOrdersTab(_allOrders), // Swapped
-            buildOrdersTab(_newOrders), // Swapped
+            buildOrdersTab(_newOrders), // This tab is now the first one
+            buildOrdersTab(_allOrders), // This tab is now the second one
           ],
         ),
       ),
