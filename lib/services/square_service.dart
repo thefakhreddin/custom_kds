@@ -1,30 +1,43 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/order.dart'; // Adjust the path to your Order model
+import 'package:intl/intl.dart';
+import '../models/order.dart'; // Make sure the path to your Order model is correct
 
 class SquareService {
-  final String baseUrl = 'https://connect.squareup.com/v2/orders/search';
+  final String baseUrl = 'https://connect.squareup.com/v2/orders';
   final String accessToken =
-      'EAAAF2sWxZLxUvxa-225Q877zDt9CXuKSDrEgXTign_8iiE0io3gf7E_HjrfS3SK'; // Use a secure way to store and access your token
+      'EAAAF2sWxZLxUvxa-225Q877zDt9CXuKSDrEgXTign_8iiE0io3gf7E_HjrfS3SK'; // Store this securely
 
-  Future<List<Order>> fetchOrders() async {
+  Future<List<Order>> fetchOrdersFromToday() async {
+    // Get the current time and the start of the day in local time
+    DateTime now = DateTime.now();
+    DateTime startOfDay = DateTime(now.year, now.month, now.day);
+
+    // Convert to UTC and format as strings
+    String formattedStartOfDay =
+        DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(startOfDay.toUtc());
+    String formattedCurrentTime =
+        DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(now.toUtc());
+
+    // Make the API call
     final response = await http.post(
-      Uri.parse(baseUrl),
+      Uri.parse('$baseUrl/search'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
         "location_ids": ["LJK2T242684EQ"],
-        "limit": 10,
+        "limit": 50,
         "query": {
           "filter": {
             "date_time_filter": {
               "created_at": {
-                "start_at": "2024-02-02T00:00:00+00:00",
-                "end_at": "2024-02-03T00:00:00+00:00"
+                "start_at": formattedStartOfDay,
+                "end_at": formattedCurrentTime
               }
-            }
+            },
+            // Include any additional filters here
           },
           "sort": {"sort_field": "CREATED_AT", "sort_order": "DESC"}
         }
@@ -33,14 +46,13 @@ class SquareService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+      // Parse the orders and return
       List<Order> orders = (data['orders'] as List)
           .map((orderJson) => Order.fromJson(orderJson))
           .toList();
       return orders;
     } else {
-      // Handle errors or return an empty list if there are no orders
-      print('Failed to fetch orders: ${response.body}');
-      return [];
+      throw Exception('Failed to fetch orders: ${response.body}');
     }
   }
 }
