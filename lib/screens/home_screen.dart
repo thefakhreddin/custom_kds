@@ -31,11 +31,8 @@ class _HomeScreenState extends State<HomeScreen>
   void _fetchLatestOrders() async {
     try {
       var fetchedOrders = await SquareService().fetchOrdersFromToday();
-      // Exclude orders that have been marked as fulfilled
-      var newOrders = fetchedOrders
-          .where((order) => !_fulfilledOrderIds.contains(order.id))
-          .toList();
-      updateOrders(newOrders);
+      // Do not exclude fulfilled orders here as this will also update the all orders list
+      updateOrders(fetchedOrders);
     } catch (e) {
       print('Failed to fetch orders: $e');
     }
@@ -43,8 +40,12 @@ class _HomeScreenState extends State<HomeScreen>
 
   void updateOrders(List<Order> fetchedOrders) {
     setState(() {
-      // When updating orders, make sure not to add back in fulfilled orders
-      _allOrders = fetchedOrders;
+      // Apply the list of fulfilled order IDs to filter out those orders from all orders.
+      _allOrders = fetchedOrders
+          .where((order) => !_fulfilledOrderIds.contains(order.id))
+          .toList();
+
+      // Filter new orders based on the app launch time and exclude fulfilled orders.
       _newOrders = fetchedOrders.where((order) {
         return DateTime.parse(order.createdAt).isAfter(_appLaunchTime) &&
             !_fulfilledOrderIds.contains(order.id);
