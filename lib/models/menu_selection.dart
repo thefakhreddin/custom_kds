@@ -18,4 +18,14 @@ class MenuSelectionModel with ChangeNotifier {
   }
 
   Set<String> get selectedItems => _selectedItems;
+
+  void selectAll(List<String> items) {
+    _selectedItems.addAll(items);
+    notifyListeners();
+  }
+
+  void deselectAll() {
+    _selectedItems.clear();
+    notifyListeners();
+  }
 }
