@@ -33,11 +33,13 @@ class OrderItem {
   final String uid;
   final String name;
   final String quantity;
+  final String variationName;
 
   OrderItem({
     required this.uid,
     required this.name,
     required this.quantity,
+    required this.variationName,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -45,6 +47,7 @@ class OrderItem {
       uid: json['uid'] as String? ?? 'Unknown UID',
       name: json['name'] as String? ?? 'Unknown Item',
       quantity: json['quantity'] as String? ?? '0',
+      variationName: json['variation_name'] as String? ?? 'No Variation',
     );
   }
 }

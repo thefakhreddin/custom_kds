@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/order.dart';
 import 'package:intl/intl.dart';
+import 'package:newkds/models/order.dart';
 
 class OrderWidget extends StatelessWidget {
   final Order order;
@@ -14,8 +14,34 @@ class OrderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final itemsString =
-        order.items.map((item) => '${item.quantity}x ${item.name}').join('\n');
+    // Formatting each item and variation as specified
+    final itemsWidgets = order.items
+        .map((item) => RichText(
+              text: TextSpan(
+                style: DefaultTextStyle.of(context).style,
+                children: <TextSpan>[
+                  TextSpan(
+                    text:
+                        '${item.quantity}x ${item.name}\n', // Order name and quantity
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  TextSpan(
+                    text: item.variationName.isNotEmpty
+                        ? '${item.variationName}\n'
+                        : '\n', // Variation details
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ))
+        .toList();
 
     final dateTime = DateTime.parse(order.createdAt).toLocal();
     final formattedTime = DateFormat('hh:mm a').format(dateTime);
@@ -24,7 +50,7 @@ class OrderWidget extends StatelessWidget {
       width: width,
       margin: EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white, // Background color of the whole card
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -37,14 +63,12 @@ class OrderWidget extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize:
-            MainAxisSize.min, // Allows the card to grow to fit the content
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors
-                  .grey[850], // Slightly lighter than black for the header
+              color: Colors.grey[850],
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(10),
                 topRight: Radius.circular(10),
@@ -61,19 +85,10 @@ class OrderWidget extends StatelessWidget {
             ),
           ),
           Expanded(
-            // Wrap the text with an Expanded widget
             child: SingleChildScrollView(
-              // Allows the content to be scrollable
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: Text(
-                  itemsString,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black, // Text color for better readability
-                  ),
-                ),
+              padding: EdgeInsets.all(10),
+              child: Column(
+                children: itemsWidgets,
               ),
             ),
           ),
