@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../services/square_service.dart';
 import '../widgets/order_widget.dart';
+import '../screens/menu_items_screen.dart'; // Assuming you've created this new screen
 import 'dart:async';
 
 class HomeScreen extends StatefulWidget {
@@ -14,15 +15,17 @@ class _HomeScreenState extends State<HomeScreen>
   Set<String> _fulfilledOrderIds = Set<String>();
   List<Order> _allOrders = [];
   List<Order> _newOrders = [];
+  List<String> _menuItems = []; // To store menu item names
   late Timer _timer;
   late TabController _tabController;
-  DateTime _appLaunchTime = DateTime.now(); // Store the app launch time
+  DateTime _appLaunchTime = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _fetchLatestOrders();
+    _fetchMenuItems();
     _timer = Timer.periodic(Duration(seconds: 5), (timer) {
       _fetchLatestOrders();
     });
@@ -31,21 +34,29 @@ class _HomeScreenState extends State<HomeScreen>
   void _fetchLatestOrders() async {
     try {
       var fetchedOrders = await SquareService().fetchOrdersFromToday();
-      // Do not exclude fulfilled orders here as this will also update the all orders list
       updateOrders(fetchedOrders);
     } catch (e) {
       print('Failed to fetch orders: $e');
     }
   }
 
+  void _fetchMenuItems() async {
+    try {
+      var fetchedItems =
+          await SquareService().fetchMenuItems(); // Assuming this method exists
+      setState(() {
+        _menuItems = fetchedItems;
+      });
+    } catch (e) {
+      print('Failed to fetch menu items: $e');
+    }
+  }
+
   void updateOrders(List<Order> fetchedOrders) {
     setState(() {
-      // Apply the list of fulfilled order IDs to filter out those orders from all orders.
       _allOrders = fetchedOrders
           .where((order) => !_fulfilledOrderIds.contains(order.id))
           .toList();
-
-      // Filter new orders based on the app launch time and exclude fulfilled orders.
       _newOrders = fetchedOrders.where((order) {
         return DateTime.parse(order.createdAt).isAfter(_appLaunchTime) &&
             !_fulfilledOrderIds.contains(order.id);
@@ -53,51 +64,40 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
+  void _markOrderAsFulfilled(String orderId) {
+    setState(() {
+      _fulfilledOrderIds.add(orderId);
+      _newOrders.removeWhere((order) => order.id == orderId);
+      // Here you could also update the backend or API to reflect the order status change
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2, // Number of tabs
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          toolbarHeight:
-              40.0, // Adjust the height as needed to make the AppBar thinner
-          backgroundColor:
-              Colors.black, // Set the AppBar background color to black
-          titleTextStyle: TextStyle(
-              color: Colors.white), // Ensures the title, if any, is in white
-          bottom: TabBar(
-            controller: _tabController,
-            labelColor:
-                Colors.white, // Set the selected tab text color to white
-            unselectedLabelColor: Colors.white.withOpacity(
-                0.7), // Set the unselected tab text color to a slightly transparent white
-            indicatorColor:
-                Colors.white, // Optional: Changes the indicator color to white
-            tabs: [
-              Tab(text: 'New Orders'), // First Tab
-              Tab(text: 'All Orders'), // Second Tab
-            ],
-          ),
-        ),
-        body: TabBarView(
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        toolbarHeight: 40.0,
+        bottom: TabBar(
           controller: _tabController,
-          children: [
-            buildOrdersTab(_newOrders, true), // Corresponds to 'New Orders' tab
-            buildOrdersTab(
-                _allOrders, false), // Corresponds to 'All Orders' tab
+          tabs: [
+            Tab(text: 'New Orders'),
+            Tab(text: 'All Orders'),
+            Tab(text: 'Menu Items'), // Make sure the count here is 3
           ],
         ),
       ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          buildOrdersTab(_newOrders, true),
+          buildOrdersTab(_allOrders, false),
+          MenuItemsScreen(
+              menuItems:
+                  _menuItems), // Ensure this is also initialized correctly
+        ],
+      ),
     );
-  }
-
-  void _markOrderAsFulfilled(String orderId) {
-    setState(() {
-      _fulfilledOrderIds.add(orderId); // Keep track of fulfilled orders
-      _newOrders.removeWhere((order) => order.id == orderId);
-      // Update the status on the backend if necessary
-    });
   }
 
   Widget buildOrdersTab(List<Order> orders, bool isNewOrdersTab) {
