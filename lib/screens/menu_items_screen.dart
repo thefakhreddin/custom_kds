@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:newkds/models/menu_selection.dart';
+import 'package:provider/provider.dart';
 
 class MenuItemsScreen extends StatefulWidget {
   final List<String> menuItems;
@@ -10,12 +12,11 @@ class MenuItemsScreen extends StatefulWidget {
 }
 
 class _MenuItemsScreenState extends State<MenuItemsScreen> {
-  late List<bool> _selected; // Declare as late
+  late List<bool> _selected;
 
   @override
   void initState() {
     super.initState();
-    // Initialize _selected based on the length of menuItems
     _selected = List<bool>.filled(widget.menuItems.length, false);
   }
 
@@ -24,14 +25,20 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
     return ListView.builder(
       itemCount: widget.menuItems.length,
       itemBuilder: (context, index) {
+        var isSelected = Provider.of<MenuSelectionModel>(context)
+            .isItemSelected(widget.menuItems[index]);
         return CheckboxListTile(
           title: Text(widget.menuItems[index]),
           tileColor: Colors.white,
-          value: _selected[index],
+          value: isSelected,
           onChanged: (bool? value) {
-            setState(() {
-              _selected[index] = value!;
-            });
+            if (value!) {
+              Provider.of<MenuSelectionModel>(context, listen: false)
+                  .addItem(widget.menuItems[index]);
+            } else {
+              Provider.of<MenuSelectionModel>(context, listen: false)
+                  .removeItem(widget.menuItems[index]);
+            }
           },
           controlAffinity: ListTileControlAffinity.leading,
         );

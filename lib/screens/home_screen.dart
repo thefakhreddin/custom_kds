@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:newkds/models/menu_selection.dart';
+import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../services/square_service.dart';
 import '../widgets/order_widget.dart';
@@ -101,7 +103,15 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget buildOrdersTab(List<Order> orders, bool isNewOrdersTab) {
-    return orders.isEmpty
+    Set<String> selectedItems =
+        Provider.of<MenuSelectionModel>(context, listen: false).selectedItems;
+
+    List<Order> filteredOrders = orders
+        .where((order) =>
+            order.items.any((item) => selectedItems.contains(item.name)))
+        .toList();
+
+    return filteredOrders.isEmpty
         ? Center(
             child:
                 Text('No orders found', style: TextStyle(color: Colors.white)))
@@ -113,9 +123,9 @@ class _HomeScreenState extends State<HomeScreen>
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
-            itemCount: orders.length,
+            itemCount: filteredOrders.length,
             itemBuilder: (context, index) {
-              final order = orders[index];
+              final order = filteredOrders[index];
               final double cardWidth =
                   MediaQuery.of(context).size.width / 2 - 16;
               return GestureDetector(
