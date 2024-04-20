@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newkds/models/menu_selection.dart';
+import 'package:newkds/screens/settings_page.dart';
 import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../services/square_service.dart';
@@ -80,12 +81,23 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: Colors.black,
       appBar: AppBar(
         toolbarHeight: 40.0,
+        title: Text('Home'), // Sets the title of the AppBar
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings), // The settings icon
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => SettingsPage(onSaved: _refreshData)),
+            ),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: [
             Tab(text: 'New Orders'),
             Tab(text: 'All Orders'),
-            Tab(text: 'Menu Items'), // Make sure the count here is 3
+            Tab(text: 'Menu Items'),
           ],
         ),
       ),
@@ -94,9 +106,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           buildOrdersTab(_newOrders, true),
           buildOrdersTab(_allOrders, false),
-          MenuItemsScreen(
-              menuItems:
-                  _menuItems), // Ensure this is also initialized correctly
+          MenuItemsScreen(menuItems: _menuItems),
         ],
       ),
     );
@@ -144,5 +154,10 @@ class _HomeScreenState extends State<HomeScreen>
     _timer.cancel();
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _refreshData() {
+    _fetchMenuItems();
+    _fetchLatestOrders();
   }
 }

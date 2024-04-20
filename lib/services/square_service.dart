@@ -8,10 +8,16 @@ class SquareService {
   final String ordersUrl = 'https://connect.squareup.com/v2/orders';
   final String catalogUrl = 'https://connect.squareup.com/v2/catalog/list';
   final String locationsUrl = 'https://connect.squareup.com/v2/locations';
-  final String accessToken =
-      'EAAAF2sWxZLxUvxa-225Q877zDt9CXuKSDrEgXTign_8iiE0io3gf7E_HjrfS3SK';
+  // final String accessToken =
+  //     'EAAAF2sWxZLxUvxa-225Q877zDt9CXuKSDrEgXTign_8iiE0io3gf7E_HjrfS3SK';
+
+  Future<String> _getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('accessToken') ?? '';
+  }
 
   Future<String> fetchLocationId() async {
+    String accessToken = await _getAccessToken();
     final response = await http.get(
       Uri.parse('https://connect.squareup.com/v2/locations'),
       headers: {
@@ -38,6 +44,7 @@ class SquareService {
   }
 
   Future<List<String>> fetchMenuItems() async {
+    String accessToken = await _getAccessToken();
     final response = await http.get(
       Uri.parse(catalogUrl), // Use the catalog URL here
       headers: {
@@ -66,6 +73,7 @@ class SquareService {
   }
 
   Future<List<Order>> fetchOrdersFromToday() async {
+    String accessToken = await _getAccessToken();
     String locationId =
         await fetchLocationId(); // Fetch the location ID dynamically
     DateTime now = DateTime.now();

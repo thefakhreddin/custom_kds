@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
-  final Function onTokenUpdate;
+  final VoidCallback onSaved;
 
-  SettingsPage({Key? key, required this.onTokenUpdate}) : super(key: key);
+  SettingsPage({required this.onSaved});
 
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -21,13 +21,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadToken() async {
     final prefs = await SharedPreferences.getInstance();
-    _tokenController.text = prefs.getString('accessToken') ?? '';
+    String? token = prefs.getString('accessToken');
+    _tokenController.text = token ?? '';
   }
 
   Future<void> _saveToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('accessToken', _tokenController.text);
-    widget.onTokenUpdate(); // Call the callback after the token is saved
+    widget.onSaved(); // Callback to refresh data on home screen
+    Navigator.pop(context); // Pop back to the home screen
   }
 
   @override
@@ -37,7 +39,7 @@ class _SettingsPageState extends State<SettingsPage> {
         title: Text('Settings'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
