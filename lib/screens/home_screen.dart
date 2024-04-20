@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen>
       appBar: AppBar(
         toolbarHeight: 40.0,
         title: Text(_apiError
-            ? 'Connating...'
+            ? 'Connecting...'
             : 'Kitchen Display'), // Sets the title of the AppBar
         actions: [
           IconButton(
