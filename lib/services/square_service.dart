@@ -1,15 +1,41 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import '../models/order.dart'; // Make sure the path to your Order model is correct
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/order.dart';
 
 class SquareService {
-  // Base URL for orders
   final String ordersUrl = 'https://connect.squareup.com/v2/orders';
-  // Base URL for catalog items
   final String catalogUrl = 'https://connect.squareup.com/v2/catalog/list';
+  final String locationsUrl = 'https://connect.squareup.com/v2/locations';
   final String accessToken =
-      'EAAAF2sWxZLxUvxa-225Q877zDt9CXuKSDrEgXTign_8iiE0io3gf7E_HjrfS3SK'; // Store this securely
+      'EAAAF2sWxZLxUvxa-225Q877zDt9CXuKSDrEgXTign_8iiE0io3gf7E_HjrfS3SK';
+
+  Future<String> fetchLocationId() async {
+    final response = await http.get(
+      Uri.parse('https://connect.squareup.com/v2/locations'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['locations'] != null && data['locations'].isNotEmpty) {
+        String locationId = data['locations'][0]['id'];
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+            'locationId', locationId); // Optionally save it for later use
+        return locationId;
+      } else {
+        throw Exception("No locations found.");
+      }
+    } else {
+      throw Exception(
+          'Failed to fetch location ID: ${response.statusCode} ${response.body}');
+    }
+  }
 
   Future<List<String>> fetchMenuItems() async {
     final response = await http.get(
@@ -40,6 +66,8 @@ class SquareService {
   }
 
   Future<List<Order>> fetchOrdersFromToday() async {
+    String locationId =
+        await fetchLocationId(); // Fetch the location ID dynamically
     DateTime now = DateTime.now();
     DateTime startOfDay = DateTime(now.year, now.month, now.day);
 
@@ -49,13 +77,13 @@ class SquareService {
         DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(now.toUtc());
 
     final response = await http.post(
-      Uri.parse('$ordersUrl/search'), // Use the orders URL here
+      Uri.parse('$ordersUrl/search'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        "location_ids": ["LJK2T242684EQ"],
+        "location_ids": [locationId], // Use the dynamically fetched location ID
         "limit": 50,
         "query": {
           "filter": {
@@ -65,7 +93,6 @@ class SquareService {
                 "end_at": formattedCurrentTime
               }
             },
-            // Include any additional filters here
           },
           "sort": {"sort_field": "CREATED_AT", "sort_order": "DESC"}
         }
@@ -74,10 +101,9 @@ class SquareService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      List<Order> orders = (data['orders'] as List)
+      return (data['orders'] as List)
           .map((orderJson) => Order.fromJson(orderJson))
           .toList();
-      return orders;
     } else {
       throw Exception('Failed to fetch orders: ${response.body}');
     }
