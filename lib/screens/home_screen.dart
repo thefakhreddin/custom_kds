@@ -22,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen>
   late Timer _timer;
   late TabController _tabController;
   DateTime _appLaunchTime = DateTime.now();
+  bool _apiError = false;
 
   @override
   void initState() {
@@ -38,20 +39,41 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       var fetchedOrders = await SquareService().fetchOrdersFromToday();
       updateOrders(fetchedOrders);
+      if (_apiError) {
+        // Reset error state if the call is now successful
+        setState(() {
+          _apiError = false;
+        });
+      }
     } catch (e) {
       print('Failed to fetch orders: $e');
+      if (!_apiError) {
+        // Set error state if an exception is caught
+        setState(() {
+          _apiError = true;
+        });
+      }
     }
   }
 
   void _fetchMenuItems() async {
     try {
-      var fetchedItems =
-          await SquareService().fetchMenuItems(); // Assuming this method exists
+      var fetchedItems = await SquareService().fetchMenuItems();
       setState(() {
         _menuItems = fetchedItems;
+        if (_apiError) {
+          // Reset error state if the call is now successful
+          _apiError = false;
+        }
       });
     } catch (e) {
       print('Failed to fetch menu items: $e');
+      if (!_apiError) {
+        // Set error state if an exception is caught
+        setState(() {
+          _apiError = true;
+        });
+      }
     }
   }
 
@@ -81,7 +103,9 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: Colors.black,
       appBar: AppBar(
         toolbarHeight: 40.0,
-        title: Text('Home'), // Sets the title of the AppBar
+        title: Text(_apiError
+            ? 'Connating...'
+            : 'Kitchen Display'), // Sets the title of the AppBar
         actions: [
           IconButton(
             icon: Icon(Icons.settings), // The settings icon
