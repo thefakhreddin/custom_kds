@@ -13,11 +13,24 @@ class MenuItemsScreen extends StatefulWidget {
 
 class _MenuItemsScreenState extends State<MenuItemsScreen> {
   late List<bool> _selected;
+  TextEditingController _searchController = TextEditingController();
+  List<String> _filteredItems = [];
 
   @override
   void initState() {
     super.initState();
     _selected = List<bool>.filled(widget.menuItems.length, false);
+    _filteredItems = widget.menuItems; // Initialize filtered list
+    _searchController.addListener(_filterItems);
+  }
+
+  void _filterItems() {
+    String query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredItems = widget.menuItems
+          .where((item) => item.toLowerCase().contains(query))
+          .toList();
+    });
   }
 
   @override
@@ -44,28 +57,51 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: widget.menuItems.length,
-        itemBuilder: (context, index) {
-          var isSelected = Provider.of<MenuSelectionModel>(context)
-              .isItemSelected(widget.menuItems[index]);
-          return CheckboxListTile(
-            title: Text(widget.menuItems[index]),
-            tileColor: Colors.white,
-            value: isSelected,
-            onChanged: (bool? value) {
-              if (value!) {
-                Provider.of<MenuSelectionModel>(context, listen: false)
-                    .addItem(widget.menuItems[index]);
-              } else {
-                Provider.of<MenuSelectionModel>(context, listen: false)
-                    .removeItem(widget.menuItems[index]);
-              }
-            },
-            controlAffinity: ListTileControlAffinity.leading,
-          );
-        },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search',
+                suffixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _filteredItems.length,
+              itemBuilder: (context, index) {
+                var isSelected = Provider.of<MenuSelectionModel>(context)
+                    .isItemSelected(_filteredItems[index]);
+                return CheckboxListTile(
+                  title: Text(_filteredItems[index]),
+                  tileColor: Colors.white,
+                  value: isSelected,
+                  onChanged: (bool? value) {
+                    if (value!) {
+                      Provider.of<MenuSelectionModel>(context, listen: false)
+                          .addItem(_filteredItems[index]);
+                    } else {
+                      Provider.of<MenuSelectionModel>(context, listen: false)
+                          .removeItem(_filteredItems[index]);
+                    }
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose(); // Don't forget to dispose the controller!
+    super.dispose();
   }
 }
