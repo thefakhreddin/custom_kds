@@ -108,12 +108,21 @@ class _HomeScreenState extends State<HomeScreen>
             : 'Kitchen Display'), // Sets the title of the AppBar
         actions: [
           IconButton(
-            icon: Icon(Icons.settings), // The settings icon
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => SettingsPage(onSaved: _refreshData)),
-            ),
+            icon: Icon(Icons.settings),
+            onPressed: () async {
+              // Navigate to the SettingsPage and await the result
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      SettingsPage(onTokenChanged: _refreshData),
+                ),
+              );
+              // Check if the settings told us to refresh
+              if (result == true) {
+                _refreshData();
+              }
+            },
           ),
         ],
         bottom: TabBar(
