@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newkds/models/menu_selection.dart';
+import 'package:newkds/screens/OrdersTabView.dart';
 import 'package:newkds/screens/settings_page.dart';
 import 'package:provider/provider.dart';
 import '../models/order.dart';
@@ -137,49 +138,18 @@ class _HomeScreenState extends State<HomeScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          buildOrdersTab(_newOrders, true),
-          buildOrdersTab(_allOrders, false),
+          OrdersTabView(
+              orders: _newOrders,
+              isNewOrdersTab: true,
+              onOrderFulfilled: _markOrderAsFulfilled),
+          OrdersTabView(
+              orders: _allOrders,
+              isNewOrdersTab: false,
+              onOrderFulfilled: _markOrderAsFulfilled),
           MenuItemsScreen(menuItems: _menuItems),
         ],
       ),
     );
-  }
-
-  Widget buildOrdersTab(List<Order> orders, bool isNewOrdersTab) {
-    Set<String> selectedItems =
-        Provider.of<MenuSelectionModel>(context, listen: false).selectedItems;
-
-    List<Order> filteredOrders = orders
-        .where((order) =>
-            order.items.any((item) => selectedItems.contains(item.name)))
-        .toList();
-
-    return filteredOrders.isEmpty
-        ? Center(
-            child:
-                Text('No orders found', style: TextStyle(color: Colors.white)))
-        : GridView.builder(
-            padding: EdgeInsets.all(8),
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 200,
-              childAspectRatio: 3 / 4,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemCount: filteredOrders.length,
-            itemBuilder: (context, index) {
-              final order = filteredOrders[index];
-              final double cardWidth =
-                  MediaQuery.of(context).size.width / 2 - 16;
-              return GestureDetector(
-                onTap: isNewOrdersTab
-                    ? () => _markOrderAsFulfilled(order.id)
-                    : null,
-                child: OrderWidget(
-                    key: ValueKey(order.id), order: order, width: cardWidth),
-              );
-            },
-          );
   }
 
   @override
