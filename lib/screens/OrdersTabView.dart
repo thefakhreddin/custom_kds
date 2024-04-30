@@ -5,7 +5,7 @@ import 'package:newkds/models/menu_selection.dart';
 import 'package:newkds/widgets/order_widget.dart';
 import 'package:provider/provider.dart';
 
-class OrdersTabView extends StatelessWidget {
+class OrdersTabView extends StatefulWidget {
   final List<Order> orders;
   final bool isNewOrdersTab;
   final Function(String) onOrderFulfilled;
@@ -18,11 +18,16 @@ class OrdersTabView extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _OrdersTabViewState createState() => _OrdersTabViewState();
+}
+
+class _OrdersTabViewState extends State<OrdersTabView> {
+  @override
   Widget build(BuildContext context) {
     Set<String> selectedItems =
         Provider.of<MenuSelectionModel>(context, listen: false).selectedItems;
 
-    List<Order> filteredOrders = orders
+    List<Order> filteredOrders = widget.orders
         .where((order) =>
             order.items.any((item) => selectedItems.contains(item.name)))
         .toList();
@@ -41,21 +46,40 @@ class OrdersTabView extends StatelessWidget {
             ),
             itemCount: filteredOrders.length,
             itemBuilder: (context, i) {
-              var index = isNewOrdersTab ? filteredOrders.length - i - 1 : i;
+              var index =
+                  widget.isNewOrdersTab ? filteredOrders.length - i - 1 : i;
               final order = filteredOrders[index];
               final double cardWidth =
                   MediaQuery.of(context).size.width / 2 - 16;
+
               return GestureDetector(
-                onTap: () => onOrderFulfilled(order.id),
-                child: Container(
-                  decoration: getDecoration(order, isNewOrdersTab),
-                  child: OrderWidget(
-                      key: ValueKey(order.id), order: order, width: cardWidth),
+                onTap: () {
+                  setState(() {
+                    opacityValues[order.id] = 0.5;
+                  });
+                  Future.delayed(Duration(seconds: 1), () {
+                    widget.onOrderFulfilled(order.id);
+                    setState(() {
+                      opacityValues[order.id] = 1.0;
+                    });
+                  });
+                },
+                child: Opacity(
+                  opacity: opacityValues[order.id] ?? 1.0,
+                  child: Container(
+                    decoration: getDecoration(order, widget.isNewOrdersTab),
+                    child: OrderWidget(
+                        key: ValueKey(order.id),
+                        order: order,
+                        width: cardWidth),
+                  ),
                 ),
               );
             },
           );
   }
+
+  Map<String, double> opacityValues = {};
 }
 
 BoxDecoration getDecoration(Order order, bool isNewOrdersTab) {

@@ -5,7 +5,7 @@ import 'package:newkds/models/menu_selection.dart';
 import 'package:newkds/widgets/order_widget_extended.dart';
 import 'package:provider/provider.dart';
 
-class OrdersTabViewVertical extends StatelessWidget {
+class OrdersTabViewVertical extends StatefulWidget {
   final List<Order> orders;
   final bool isNewOrdersTab;
   final Function(String) onOrderFulfilled;
@@ -18,11 +18,18 @@ class OrdersTabViewVertical extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _OrdersTabViewVerticalState createState() => _OrdersTabViewVerticalState();
+}
+
+class _OrdersTabViewVerticalState extends State<OrdersTabViewVertical> {
+  Map<String, double> opacityValues = {}; // Track opacity for each order
+
+  @override
   Widget build(BuildContext context) {
     Set<String> selectedItems =
         Provider.of<MenuSelectionModel>(context, listen: false).selectedItems;
 
-    List<Order> filteredOrders = orders
+    List<Order> filteredOrders = widget.orders
         .where((order) =>
             order.items.any((item) => selectedItems.contains(item.name)))
         .toList();
@@ -36,16 +43,37 @@ class OrdersTabViewVertical extends StatelessWidget {
             padding: EdgeInsets.all(8),
             itemCount: filteredOrders.length,
             itemBuilder: (context, i) {
-              var index = isNewOrdersTab ? filteredOrders.length - i - 1 : i;
+              var index =
+                  widget.isNewOrdersTab ? filteredOrders.length - i - 1 : i;
               final order = filteredOrders[index];
               final double cardWidth =
                   MediaQuery.of(context).size.width / 2 - 16;
+
               return GestureDetector(
-                onTap: () => onOrderFulfilled(order.id),
-                child: Container(
-                  decoration: getDecoration(order, isNewOrdersTab),
-                  child: OrderWidgetExtended(
-                      key: ValueKey(order.id), order: order, width: cardWidth),
+                onTap: () {
+                  setState(() {
+                    opacityValues[order.id] = 0.5; // Set opacity to 0.5 on tap
+                  });
+                  Future.delayed(Duration(seconds: 1), () {
+                    widget.onOrderFulfilled(
+                        order.id); // Call fulfillment function after 2 seconds
+                    setState(() {
+                      opacityValues[order.id] =
+                          1.0; // Reset opacity back to 1.0
+                    });
+                  });
+                },
+                child: Opacity(
+                  opacity:
+                      opacityValues[order.id] ?? 1.0, // Use dynamic opacity
+                  child: Container(
+                    width: cardWidth,
+                    decoration: getDecoration(order, widget.isNewOrdersTab),
+                    child: OrderWidgetExtended(
+                        key: ValueKey(order.id),
+                        order: order,
+                        width: cardWidth),
+                  ),
                 ),
               );
             },
