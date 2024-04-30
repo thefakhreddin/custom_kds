@@ -40,7 +40,8 @@ class OrdersTabView extends StatelessWidget {
               mainAxisSpacing: 8,
             ),
             itemCount: filteredOrders.length,
-            itemBuilder: (context, index) {
+            itemBuilder: (context, i) {
+              var index = isNewOrdersTab ? filteredOrders.length - i - 1 : i;
               final order = filteredOrders[index];
               final double cardWidth =
                   MediaQuery.of(context).size.width / 2 - 16;
