@@ -40,7 +40,7 @@ class OrdersTabViewExtended extends StatelessWidget {
               final double cardWidth =
                   MediaQuery.of(context).size.width / 2 - 16;
               return GestureDetector(
-                onTap: isNewOrdersTab ? () => onOrderFulfilled(order.id) : null,
+                onTap: () => onOrderFulfilled(order.id),
                 child: OrderWidgetExtended(
                     key: ValueKey(order.id), order: order, width: cardWidth),
               );

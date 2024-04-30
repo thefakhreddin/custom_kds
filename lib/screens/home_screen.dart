@@ -18,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen>
   Set<String> _fulfilledOrderIds = Set<String>();
   List<Order> _allOrders = [];
   List<Order> _newOrders = [];
+  List<Order> _recalledOrders = [];
   List<String> _menuItems = []; // To store menu item names
   late Timer _timer;
   late TabController _tabController;
@@ -90,9 +91,20 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _markOrderAsFulfilled(String orderId) {
     setState(() {
-      _fulfilledOrderIds.add(orderId);
+      if (!_fulfilledOrderIds.contains(orderId)) {
+        _fulfilledOrderIds.add(orderId);
+      }
       _newOrders.removeWhere((order) => order.id == orderId);
-      // Here you could also update the backend or API to reflect the order status change
+      _recalledOrders.removeWhere((order) => order.id == orderId);
+    });
+  }
+
+  void _unmarkOrderAsFulfilled(String orderId) {
+    setState(() {
+      Order? orderToReintroduce =
+          _allOrders.firstWhere((order) => order.id == orderId);
+      orderToReintroduce.isRecalled = true;
+      _recalledOrders.add(orderToReintroduce);
     });
   }
 
@@ -151,13 +163,13 @@ class _HomeScreenState extends State<HomeScreen>
         controller: _tabController,
         children: [
           RefreshIndicator(
-            child: orderTabView(
-                layoutIndex, _newOrders, true, _markOrderAsFulfilled),
+            child: orderTabView(layoutIndex, _recalledOrders + _newOrders, true,
+                _markOrderAsFulfilled),
             onRefresh: _fetchLatestOrders,
           ),
           RefreshIndicator(
             child: orderTabView(
-                layoutIndex, _allOrders, false, _markOrderAsFulfilled),
+                layoutIndex, _allOrders, false, _unmarkOrderAsFulfilled),
             onRefresh: _fetchLatestOrders,
           )
         ],

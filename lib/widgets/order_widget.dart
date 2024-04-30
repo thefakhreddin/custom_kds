@@ -84,6 +84,25 @@ class OrderWidget extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
+          if (order.isRecalled) // Conditional widget for recalled status
+            Container(
+              padding: EdgeInsets.all(8),
+              color: Colors.yellow,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.keyboard_return, color: Colors.black),
+                  SizedBox(width: 8),
+                  Text(
+                    "Recalled",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(10),

@@ -3,6 +3,7 @@ class Order {
   final List<OrderItem> items;
   final String createdAt;
   final String state;
+  bool isRecalled = false;
 
   Order({
     required this.id,
