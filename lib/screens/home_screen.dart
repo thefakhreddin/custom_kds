@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  void _fetchLatestOrders() async {
+  Future _fetchLatestOrders() async {
     try {
       var fetchedOrders = await SquareService().fetchOrdersFromToday();
       updateOrders(fetchedOrders);
@@ -152,8 +152,16 @@ class _HomeScreenState extends State<HomeScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          orderTabView(layoutIndex, _newOrders, true, _markOrderAsFulfilled),
-          orderTabView(layoutIndex, _allOrders, false, _markOrderAsFulfilled)
+          RefreshIndicator(
+            child: orderTabView(
+                layoutIndex, _newOrders, true, _markOrderAsFulfilled),
+            onRefresh: _fetchLatestOrders,
+          ),
+          RefreshIndicator(
+            child: orderTabView(
+                layoutIndex, _allOrders, false, _markOrderAsFulfilled),
+            onRefresh: _fetchLatestOrders,
+          )
         ],
       ),
     );

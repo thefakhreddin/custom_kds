@@ -37,21 +37,19 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
       appBar: AppBar(
         title: Text("Menu Items"),
         actions: [
-          IconButton(
-            icon: Icon(Icons.select_all),
+          TextButton(
             onPressed: () {
               Provider.of<MenuSelectionModel>(context, listen: false)
                   .selectAll(widget.menuItems);
             },
-            tooltip: "Select All",
+            child: Text("Select All"),
           ),
-          IconButton(
-            icon: Icon(Icons.clear_all),
+          TextButton(
             onPressed: () {
               Provider.of<MenuSelectionModel>(context, listen: false)
                   .deselectAll();
             },
-            tooltip: "Deselect All",
+            child: Text("Deselect All"),
           ),
         ],
       ),
