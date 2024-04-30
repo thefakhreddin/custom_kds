@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _fetchLatestOrders();
     _fetchMenuItems();
     _timer = Timer.periodic(Duration(seconds: 5), (timer) {
@@ -109,6 +109,15 @@ class _HomeScreenState extends State<HomeScreen>
             : 'Kitchen Display'), // Sets the title of the AppBar
         actions: [
           IconButton(
+            icon: Icon(
+                Icons.filter_list), // Using filter_list icon for menu items
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => MenuItemsScreen(menuItems: _menuItems)),
+            ),
+          ),
+          IconButton(
             icon: Icon(Icons.settings),
             onPressed: () async {
               // Navigate to the SettingsPage and await the result
@@ -131,7 +140,6 @@ class _HomeScreenState extends State<HomeScreen>
           tabs: [
             Tab(text: 'New Orders'),
             Tab(text: 'All Orders'),
-            Tab(text: 'Menu Items'),
           ],
         ),
       ),
@@ -146,7 +154,6 @@ class _HomeScreenState extends State<HomeScreen>
               orders: _allOrders,
               isNewOrdersTab: false,
               onOrderFulfilled: _markOrderAsFulfilled),
-          MenuItemsScreen(menuItems: _menuItems),
         ],
       ),
     );
