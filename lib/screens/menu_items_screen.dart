@@ -35,7 +35,7 @@ class _MenuItemsScreenState extends State<MenuItemsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Menu Items"),
+        title: Text("Filter"),
         actions: [
           TextButton(
             onPressed: () {
