@@ -80,9 +80,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   void updateOrders(List<Order> fetchedOrders) {
     setState(() {
-      _allOrders = fetchedOrders
-          .where((order) => !_fulfilledOrderIds.contains(order.id))
-          .toList();
+      _allOrders = fetchedOrders;
       _newOrders = fetchedOrders.where((order) {
         return DateTime.parse(order.createdAt).isAfter(_appLaunchTime) &&
             !_fulfilledOrderIds.contains(order.id);
