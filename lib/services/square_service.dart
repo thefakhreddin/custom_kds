@@ -16,6 +16,33 @@ class SquareService {
     return prefs.getString('accessToken') ?? '';
   }
 
+  Future<String> fetchShopName() async {
+    String accessToken = await _getAccessToken();
+    final response = await http.get(
+      Uri.parse('https://connect.squareup.com/v2/locations'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['locations'] != null && data['locations'].isNotEmpty) {
+        String storeName = data['locations'][0]['name'];
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+            'storeName', storeName); // Optionally save it for later use
+        return storeName;
+      } else {
+        throw Exception("No locations found.");
+      }
+    } else {
+      throw Exception(
+          'Failed to fetch location ID: ${response.statusCode} ${response.body}');
+    }
+  }
+
   Future<String> fetchLocationId() async {
     String accessToken = await _getAccessToken();
     final response = await http.get(

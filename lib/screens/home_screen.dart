@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen>
   DateTime _appLaunchTime = DateTime.now();
   bool _apiError = false;
   int layoutIndex = 0;
+  String shopName = 'Kitchen Display';
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen>
     _tabController = TabController(length: 2, vsync: this);
     _fetchLatestOrders();
     _fetchMenuItems();
+    fetchShopName();
     _timer = Timer.periodic(Duration(seconds: 5), (timer) {
       _fetchLatestOrders();
     });
@@ -55,6 +57,21 @@ class _HomeScreenState extends State<HomeScreen>
           _apiError = true;
         });
       }
+    }
+  }
+
+  void fetchShopName() async {
+    try {
+      String fetchedName = await SquareService().fetchShopName();
+      setState(() {
+        shopName = fetchedName; // Update shop name on successful fetch
+        _apiError = false; // Reset any previous error state
+      });
+    } catch (e) {
+      setState(() {
+        _apiError = true; // Set error state on fetch failure
+        print('Failed to fetch shop name: $e');
+      });
     }
   }
 
@@ -116,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen>
         toolbarHeight: 40.0,
         title: Text(_apiError
             ? 'Connecting...'
-            : 'Kitchen Display'), // Sets the title of the AppBar
+            : shopName), // Sets the title of the AppBar
         actions: [
           IconButton(
             icon: Icon(
@@ -205,6 +222,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _refreshData() {
+    fetchShopName();
     _fetchMenuItems();
     _fetchLatestOrders();
   }
