@@ -38,7 +38,6 @@ class _SettingsPageState extends State<SettingsPage> {
     widget.onTokenChanged(); // Notify that settings have changed
   }
 
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -55,17 +54,32 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Account', style: Theme.of(context).textTheme.headline6),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child:
+                  Text('Account', style: Theme.of(context).textTheme.headline6),
+            ),
             TextField(
               controller: _tokenController,
-              decoration: InputDecoration(labelText: 'Access Token'),
+              decoration: InputDecoration(
+                labelText: 'Access Token',
+                border:
+                    OutlineInputBorder(), // Adds border around the TextField
+                contentPadding: EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 15), // Padding inside the TextField
+              ),
               onSubmitted: (value) => _saveSettings(),
             ),
-            Divider(color: Colors.grey[300], thickness: 1),
-            Text('Time Indicators',
-                style: Theme.of(context).textTheme.headline6),
+            SizedBox(height: 20), // Spacing between sections
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text('Time Indicators',
+                  style: Theme.of(context).textTheme.headline6),
+            ),
             _buildNumericInput(
                 'Yellow Indicator (minutes)', _timeYellowController),
+            SizedBox(height: 10), // Spacing between fields
             _buildNumericInput('Red Indicator (minutes)', _timeRedController),
           ],
         ),
@@ -78,12 +92,11 @@ class _SettingsPageState extends State<SettingsPage> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
       ),
       keyboardType: TextInputType.number,
-      onSubmitted: (value) {
-        _saveSettings();
-        FocusScope.of(context).unfocus(); // Hide the keyboard after input
-      },
+      onSubmitted: (value) => _saveSettings(),
     );
   }
 }
