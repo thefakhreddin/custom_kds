@@ -22,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen>
   late TabController _tabController;
   DateTime _appLaunchTime = DateTime.now();
   bool _apiError = false;
+  int layoutIndex = 0;
 
   @override
   void initState() {
@@ -116,6 +117,12 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           IconButton(
+            icon: Icon(Icons.auto_awesome_mosaic),
+            onPressed: () => setState(() {
+              layoutIndex = layoutIndex == 0 ? 1 : 0; // Toggle layout index
+            }),
+          ),
+          IconButton(
             icon: Icon(Icons.settings),
             onPressed: () async {
               // Navigate to the SettingsPage and await the result
@@ -144,14 +151,24 @@ class _HomeScreenState extends State<HomeScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          OrdersTabViewExtended(
-              orders: _newOrders,
-              isNewOrdersTab: true,
-              onOrderFulfilled: _markOrderAsFulfilled),
-          OrdersTabViewExtended(
-              orders: _allOrders,
-              isNewOrdersTab: false,
-              onOrderFulfilled: _markOrderAsFulfilled),
+          layoutIndex == 0
+              ? OrdersTabViewExtended(
+                  orders: _newOrders,
+                  isNewOrdersTab: true,
+                  onOrderFulfilled: _markOrderAsFulfilled)
+              : OrdersTabView(
+                  orders: _newOrders,
+                  isNewOrdersTab: true,
+                  onOrderFulfilled: _markOrderAsFulfilled),
+          layoutIndex == 0
+              ? OrdersTabViewExtended(
+                  orders: _allOrders,
+                  isNewOrdersTab: false,
+                  onOrderFulfilled: _markOrderAsFulfilled)
+              : OrdersTabView(
+                  orders: _allOrders,
+                  isNewOrdersTab: false,
+                  onOrderFulfilled: _markOrderAsFulfilled),
         ],
       ),
     );
