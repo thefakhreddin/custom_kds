@@ -42,10 +42,44 @@ class OrdersTabViewVertical extends StatelessWidget {
                   MediaQuery.of(context).size.width / 2 - 16;
               return GestureDetector(
                 onTap: () => onOrderFulfilled(order.id),
-                child: OrderWidgetExtended(
-                    key: ValueKey(order.id), order: order, width: cardWidth),
+                child: Container(
+                  decoration: getDecoration(order, isNewOrdersTab),
+                  child: OrderWidgetExtended(
+                      key: ValueKey(order.id), order: order, width: cardWidth),
+                ),
               );
             },
           );
+  }
+}
+
+BoxDecoration getDecoration(Order order, bool isNewOrdersTab) {
+  if (!isNewOrdersTab) {
+    return BoxDecoration(borderRadius: BorderRadius.circular(10));
+  }
+
+  final currentTime = DateTime.now();
+  final orderTime = DateTime.parse(order.createdAt).toLocal();
+  final elapsedTime = currentTime.difference(orderTime).inMinutes;
+
+  final int yellowThreshold =
+      5; // Placeholder, replace with value from SharedPreferences
+  final int redThreshold =
+      10; // Placeholder, replace with value from SharedPreferences
+
+  if (elapsedTime > redThreshold) {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(10),
+      color: Colors.red,
+    );
+  } else if (elapsedTime > yellowThreshold) {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(10),
+      color: Colors.yellow,
+    );
+  } else {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(10),
+    );
   }
 }

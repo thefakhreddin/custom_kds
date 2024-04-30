@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum SettingsCategory { account, layout }
-
 class SettingsPage extends StatefulWidget {
   final VoidCallback onTokenChanged;
 
@@ -14,26 +12,30 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   TextEditingController _tokenController = TextEditingController();
-  SettingsCategory _selectedCategory = SettingsCategory.account;
+  TextEditingController _timeYellowController = TextEditingController();
+  TextEditingController _timeRedController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadToken();
+    _loadSettings();
   }
 
-  Future<void> _loadToken() async {
+  Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('accessToken');
-    _tokenController.text = token ?? '';
+    _tokenController.text = prefs.getString('accessToken') ?? '';
+    _timeYellowController.text =
+        prefs.getString('timeYellow') ?? '5'; // Default to 5 minutes
+    _timeRedController.text =
+        prefs.getString('timeRed') ?? '10'; // Default to 10 minutes
   }
 
-  Future<void> _saveToken(String token) async {
+  Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('accessToken', token);
-    widget.onTokenChanged(); // Callback to refresh data on home screen
-    Navigator.pop(
-        context, true); // Pop with a result indicating something was saved
+    await prefs.setString('accessToken', _tokenController.text);
+    await prefs.setString('timeYellow', _timeYellowController.text);
+    await prefs.setString('timeRed', _timeRedController.text);
+    widget.onTokenChanged(); // Notify that settings have changed
   }
 
   @override
@@ -41,70 +43,47 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Settings'),
-      ),
-      body: Row(
-        children: <Widget>[
-          NavigationRail(
-            selectedIndex: _selectedCategory.index,
-            onDestinationSelected: (index) {
-              setState(() {
-                _selectedCategory = SettingsCategory.values[index];
-              });
-            },
-            labelType: NavigationRailLabelType.all,
-            destinations: [
-              NavigationRailDestination(
-                icon: Icon(Icons.account_circle),
-                selectedIcon: Icon(Icons.account_circle_outlined),
-                label: Text('Account'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.abc),
-                selectedIcon: Icon(Icons.abc_outlined),
-                label: Text('Layout'),
-              ),
-            ],
-          ),
-          VerticalDivider(thickness: 1, width: 1),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: _selectedCategory == SettingsCategory.account
-                  ? _buildAccountSettings()
-                  : _buildLayoutSettings(),
-            ),
-          ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.save),
+            onPressed: _saveSettings,
+          )
         ],
       ),
-    );
-  }
-
-  Widget _buildAccountSettings() {
-    return Column(
-      children: [
-        TextField(
-          controller: _tokenController,
-          decoration: InputDecoration(
-            labelText: 'Access Token',
-            suffixIcon: IconButton(
-              icon: Icon(Icons.check),
-              onPressed: () {
-                _saveToken(_tokenController.text);
-                FocusScope.of(context).unfocus();
-              },
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Account', style: Theme.of(context).textTheme.headline6),
+            TextField(
+              controller: _tokenController,
+              decoration: InputDecoration(labelText: 'Access Token'),
+              onSubmitted: (value) => _saveSettings(),
             ),
-          ),
-          onSubmitted: _saveToken,
-          textInputAction: TextInputAction.done,
+            Divider(color: Colors.grey[300], thickness: 1),
+            Text('Time Indicators',
+                style: Theme.of(context).textTheme.headline6),
+            _buildNumericInput(
+                'Yellow Indicator (minutes)', _timeYellowController),
+            _buildNumericInput('Red Indicator (minutes)', _timeRedController),
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildLayoutSettings() {
-    // Placeholder for layout settings
-    return Center(
-      child: Text('Layout settings will be displayed here.'),
+  Widget _buildNumericInput(String label, TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+      ),
+      keyboardType: TextInputType.number,
+      onSubmitted: (value) {
+        _saveSettings();
+        FocusScope.of(context).unfocus(); // Hide the keyboard after input
+      },
     );
   }
 }
