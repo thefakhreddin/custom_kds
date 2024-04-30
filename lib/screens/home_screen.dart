@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newkds/screens/OrderTabViewExtended.dart';
+import 'package:newkds/screens/OrderTabViewVertical.dart';
 import 'package:newkds/screens/OrdersTabView.dart';
 import 'package:newkds/screens/settings_page.dart';
 import '../models/order.dart';
@@ -117,11 +118,11 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           IconButton(
-            icon: Icon(Icons.auto_awesome_mosaic),
-            onPressed: () => setState(() {
-              layoutIndex = layoutIndex == 0 ? 1 : 0; // Toggle layout index
-            }),
-          ),
+              icon: Icon(Icons.auto_awesome_mosaic),
+              onPressed: () => setState(() {
+                    layoutIndex =
+                        (layoutIndex + 1) % 3; // Cycles through 0, 1, and 2
+                  })),
           IconButton(
             icon: Icon(Icons.settings),
             onPressed: () async {
@@ -151,27 +152,31 @@ class _HomeScreenState extends State<HomeScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          layoutIndex == 0
-              ? OrdersTabViewExtended(
-                  orders: _newOrders,
-                  isNewOrdersTab: true,
-                  onOrderFulfilled: _markOrderAsFulfilled)
-              : OrdersTabView(
-                  orders: _newOrders,
-                  isNewOrdersTab: true,
-                  onOrderFulfilled: _markOrderAsFulfilled),
-          layoutIndex == 0
-              ? OrdersTabViewExtended(
-                  orders: _allOrders,
-                  isNewOrdersTab: false,
-                  onOrderFulfilled: _markOrderAsFulfilled)
-              : OrdersTabView(
-                  orders: _allOrders,
-                  isNewOrdersTab: false,
-                  onOrderFulfilled: _markOrderAsFulfilled),
+          orderTabView(layoutIndex, _newOrders, true, _markOrderAsFulfilled),
+          orderTabView(layoutIndex, _allOrders, false, _markOrderAsFulfilled)
         ],
       ),
     );
+  }
+
+  Widget orderTabView(index, orders, isNewOrdersTab, onOrderFulfilled) {
+    if (index == 0) {
+      {
+        return OrdersTabView(
+            orders: orders,
+            isNewOrdersTab: isNewOrdersTab,
+            onOrderFulfilled: onOrderFulfilled);
+      }
+    } else if (index == 1) {
+      return OrdersTabViewExtended(
+          orders: orders,
+          isNewOrdersTab: isNewOrdersTab,
+          onOrderFulfilled: onOrderFulfilled);
+    }
+    return OrdersTabViewVertical(
+        orders: orders,
+        isNewOrdersTab: isNewOrdersTab,
+        onOrderFulfilled: onOrderFulfilled);
   }
 
   @override
