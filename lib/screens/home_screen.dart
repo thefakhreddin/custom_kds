@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:newkds/models/menu_selection.dart';
 import 'package:newkds/screens/OrdersTabView.dart';
 import 'package:newkds/screens/settings_page.dart';
-import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../services/square_service.dart';
-import '../widgets/order_widget.dart';
 import '../screens/menu_items_screen.dart'; // Assuming you've created this new screen
 import 'dart:async';
 

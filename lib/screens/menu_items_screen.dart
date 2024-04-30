@@ -12,14 +12,12 @@ class MenuItemsScreen extends StatefulWidget {
 }
 
 class _MenuItemsScreenState extends State<MenuItemsScreen> {
-  late List<bool> _selected;
   TextEditingController _searchController = TextEditingController();
   List<String> _filteredItems = [];
 
   @override
   void initState() {
     super.initState();
-    _selected = List<bool>.filled(widget.menuItems.length, false);
     _filteredItems = widget.menuItems; // Initialize filtered list
     _searchController.addListener(_filterItems);
   }
