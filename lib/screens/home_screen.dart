@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:newkds/screens/OrderTabViewExtended.dart';
 import 'package:newkds/screens/OrdersTabView.dart';
 import 'package:newkds/screens/settings_page.dart';
 import '../models/order.dart';
@@ -143,11 +144,11 @@ class _HomeScreenState extends State<HomeScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          OrdersTabView(
+          OrdersTabViewExtended(
               orders: _newOrders,
               isNewOrdersTab: true,
               onOrderFulfilled: _markOrderAsFulfilled),
-          OrdersTabView(
+          OrdersTabViewExtended(
               orders: _allOrders,
               isNewOrdersTab: false,
               onOrderFulfilled: _markOrderAsFulfilled),
